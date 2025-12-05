@@ -1,0 +1,28 @@
+{
+  "name": "practicetestgenerator",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run src/server/index.ts",
+    "build": "bun build src/frontend/index.tsx --outdir dist --target browser",
+    "start": "bun run src/server/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@azure/cognitiveservices-websearch": "^3.0.0",
+    "@azure/ms-rest-js": "^2.6.0",
+    "@azure/openai": "latest",
+    "cheerio": "^1.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
