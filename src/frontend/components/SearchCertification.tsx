@@ -49,7 +49,13 @@ const SearchCertification: React.FC<SearchCertificationProps> = ({ onSelectCerti
         onSelectCertification(url, name);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      // If search is not available, provide helpful message
+      if (errorMessage.includes('Search functionality') || errorMessage.includes('503')) {
+        setError('Search is not available. Please use the "Enter Microsoft Learn URL" option below and paste a direct link to the study guide.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }

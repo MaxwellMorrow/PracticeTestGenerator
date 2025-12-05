@@ -6,7 +6,7 @@ import { TestStorage } from '../services/testStorage';
 import { PracticeTest, CertificationSearchResult } from '../types';
 
 export class APIRoutes {
-  private bingSearch: BingSearchService;
+  private bingSearch: BingSearchService | null;
   private contentExtractor: ContentExtractor;
   private contentAnalyzer: ContentAnalyzer;
   private questionGenerator: QuestionGenerator;
@@ -18,7 +18,8 @@ export class APIRoutes {
     openaiApiKey: string,
     openaiDeploymentName: string
   ) {
-    this.bingSearch = new BingSearchService(bingApiKey);
+    // Only initialize Bing Search if API key is provided
+    this.bingSearch = bingApiKey ? new BingSearchService(bingApiKey) : null;
     this.contentExtractor = new ContentExtractor();
     this.contentAnalyzer = new ContentAnalyzer();
     this.questionGenerator = new QuestionGenerator(
@@ -33,6 +34,10 @@ export class APIRoutes {
    * Search for certifications
    */
   async searchCertifications(query: string): Promise<CertificationSearchResult[]> {
+    if (!this.bingSearch) {
+      // Fallback: return empty results or implement alternative search
+      throw new Error('Search functionality requires Bing Search API key. Please provide a direct Microsoft Learn URL instead.');
+    }
     const results = await this.bingSearch.searchCertification(query);
     return results.map(r => ({
       title: r.title,
@@ -56,44 +61,15 @@ export class APIRoutes {
       await fetch(studyGuideUrl).then(r => r.text())
     );
 
-    // Step 2: Analyze content to find key topics
-    console.log('Step 2: Analyzing content for key topics...');
-    const analysis = await this.contentAnalyzer.analyzeContent(
-      studyGuideContent,
-      structuredContent
-    );
-
-    // Step 3: Search web for related content based on topics
-    console.log('Step 3: Searching web for related content...');
-    const searchQueries = this.contentAnalyzer.extractSearchQueries(analysis);
-    const webContent = await this.bingSearch.searchRelatedContent(searchQueries, 10);
-
-    // Step 4: Fetch full content from web results (limit to avoid timeout)
-    console.log('Step 4: Fetching content from web results...');
-    const webContentWithFullText = await Promise.all(
-      webContent.slice(0, 5).map(async (item) => {
-        try {
-          const fullContent = await this.contentExtractor.fetchContent(item.url);
-          return {
-            ...item,
-            content: fullContent.substring(0, 2000), // Limit content size
-          };
-        } catch (error) {
-          console.warn(`Failed to fetch content from ${item.url}:`, error);
-          return item; // Return with just snippet
-        }
-      })
-    );
-
-    // Step 5: Generate questions from combined content
-    console.log('Step 5: Generating questions...');
+    // Step 2: Generate questions directly from study guide content
+    console.log('Step 2: Generating questions from study guide...');
     const questions = await this.questionGenerator.generateQuestions(
       studyGuideContent,
-      webContentWithFullText,
+      [], // Empty web content array - web search removed for cost savings
       questionCount
     );
 
-    // Step 6: Create and save test
+    // Step 3: Create and save test
     const test: PracticeTest = {
       id: `test-${Date.now()}-${Math.random().toString(36).substring(7)}`,
       certificationName,

@@ -18,8 +18,8 @@ A full-stack application that generates practice tests for Microsoft certificati
 ## Prerequisites
 
 - [Bun](https://bun.sh) runtime (v1.3.3 or later)
-- Azure Bing Search API key
 - Azure OpenAI endpoint, API key, and deployment name
+- (Optional) Azure Bing Search API key - only needed if you want to use the search functionality
 
 ## Setup
 
@@ -32,16 +32,18 @@ A full-stack application that generates practice tests for Microsoft certificati
    
    Create a `.env` file in the root directory:
    ```env
-   BING_SEARCH_API_KEY=your_bing_search_api_key_here
    AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
    AZURE_OPENAI_API_KEY=your_azure_openai_api_key_here
    AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4
    PORT=3000
+   
+   # Optional - only needed if you want to use search functionality
+   # BING_SEARCH_API_KEY=your_bing_search_api_key_here
    ```
 
 3. **Get Azure API Keys:**
-   - **Bing Search API**: Get your key from [Azure Portal](https://portal.azure.com) → Create a Bing Search v7 resource
    - **Azure OpenAI**: Get your endpoint and key from [Azure OpenAI Studio](https://oai.azure.com/)
+   - **(Optional) Bing Search API**: Get your key from [Azure Portal](https://portal.azure.com) → Create a Bing Search v7 resource (only needed for search functionality)
 
 ## Running the Application
 
@@ -55,18 +57,16 @@ A full-stack application that generates practice tests for Microsoft certificati
 
 ## Usage
 
-1. **Search for Certification:**
-   - Enter a certification name (e.g., "AZ-900 Azure Fundamentals") or
-   - Paste a Microsoft Learn URL directly
+1. **Find Your Study Guide:**
+   - **Option A (with Bing Search)**: Enter a certification name (e.g., "AZ-900 Azure Fundamentals") to search
+   - **Option B (no search needed)**: Paste a Microsoft Learn URL directly
 
 2. **Generate Test:**
-   - Select a study guide from search results
+   - If using search, select a study guide from results
    - Configure the number of questions (default: 40)
    - Wait for the system to:
      - Extract study guide content
-     - Analyze key topics
-     - Search for related web content
-     - Generate practice questions
+     - Generate practice questions from the study guide
 
 3. **Take the Test:**
    - Answer questions (answers are hidden)
@@ -108,11 +108,11 @@ A full-stack application that generates practice tests for Microsoft certificati
 ## How It Works
 
 1. **Content Extraction**: Uses web scraping to extract text content from Microsoft Learn pages
-2. **Content Analysis**: Analyzes the study guide to identify key topics, concepts, and important sections
-3. **Web Search**: Searches the web for additional content related to identified topics
-4. **Question Generation**: Uses Azure OpenAI to generate practice questions from the combined content (study guide + web content)
-5. **Test Storage**: Saves generated tests locally for later retrieval
-6. **Scoring**: Calculates scores and provides detailed feedback
+2. **Question Generation**: Uses Azure OpenAI to generate practice questions directly from the study guide content
+3. **Test Storage**: Saves generated tests locally for later retrieval
+4. **Scoring**: Calculates scores and provides detailed feedback
+
+**Note**: Web search functionality has been removed to reduce costs. Questions are generated from the study guide content only. If you have a Bing Search API key, you can optionally enable search functionality by setting `BING_SEARCH_API_KEY` in your `.env` file.
 
 ## API Endpoints
 
@@ -131,9 +131,10 @@ A full-stack application that generates practice tests for Microsoft certificati
 
 ## Troubleshooting
 
-- **Missing environment variables**: Ensure all required API keys are set in `.env`
-- **API errors**: Check that your Azure API keys are valid and have proper permissions
+- **Missing environment variables**: Ensure Azure OpenAI API keys are set in `.env` (Bing Search is optional)
+- **API errors**: Check that your Azure OpenAI API keys are valid and have proper permissions
 - **Content extraction fails**: Some Microsoft Learn pages may have different structures; the extractor will try multiple selectors
+- **Search not working**: If you want to use search, ensure `BING_SEARCH_API_KEY` is set in your `.env` file. Otherwise, use direct Microsoft Learn URLs.
 
 ## License
 

@@ -1,22 +1,22 @@
 import { APIRoutes } from '../api/routes';
 
 // Load environment variables
-const BING_SEARCH_API_KEY = process.env.BING_SEARCH_API_KEY || '';
+const BING_SEARCH_API_KEY = process.env.BING_SEARCH_API_KEY || ''; // Optional - only needed for search functionality
 const AZURE_OPENAI_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT || '';
 const AZURE_OPENAI_API_KEY = process.env.AZURE_OPENAI_API_KEY || '';
 const AZURE_OPENAI_DEPLOYMENT_NAME = process.env.AZURE_OPENAI_DEPLOYMENT_NAME || 'gpt-4';
 
-if (!BING_SEARCH_API_KEY || !AZURE_OPENAI_ENDPOINT || !AZURE_OPENAI_API_KEY) {
+if (!AZURE_OPENAI_ENDPOINT || !AZURE_OPENAI_API_KEY) {
   console.error('Missing required environment variables:');
-  console.error('- BING_SEARCH_API_KEY');
   console.error('- AZURE_OPENAI_ENDPOINT');
   console.error('- AZURE_OPENAI_API_KEY');
   console.error('- AZURE_OPENAI_DEPLOYMENT_NAME (optional, defaults to gpt-4)');
+  console.error('- BING_SEARCH_API_KEY (optional - only needed for search functionality)');
   process.exit(1);
 }
 
 const apiRoutes = new APIRoutes(
-  BING_SEARCH_API_KEY,
+  BING_SEARCH_API_KEY, // Empty string if not provided - web search will be disabled
   AZURE_OPENAI_ENDPOINT,
   AZURE_OPENAI_API_KEY,
   AZURE_OPENAI_DEPLOYMENT_NAME
@@ -77,8 +77,17 @@ const server = Bun.serve({
           return sendError(new Response(), 'Query parameter "q" is required', 400);
         }
 
-        const results = await apiRoutes.searchCertifications(query);
-        return sendJSON(new Response(), { results });
+        try {
+          const results = await apiRoutes.searchCertifications(query);
+          return sendJSON(new Response(), { results });
+        } catch (error) {
+          // If search is not available (no Bing API key), return helpful error
+          return sendError(
+            new Response(),
+            error instanceof Error ? error.message : 'Search functionality is not available. Please provide a direct Microsoft Learn URL instead.',
+            503
+          );
+        }
       }
 
       // Generate test
