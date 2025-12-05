@@ -4,7 +4,7 @@ interface TestGeneratorProps {
   studyGuideUrl: string;
   certificationName: string;
   defaultQuestionCount: number;
-  onTestGenerated: (test: { id: string; certificationName: string; questionCount: number }) => void;
+  onTestGenerated: (test: { id: string; certificationName: string; studyGuideUrl: string; questionCount: number }) => void;
   onCancel: () => void;
 }
 
@@ -72,6 +72,7 @@ const TestGenerator: React.FC<TestGeneratorProps> = ({
       onTestGenerated({
         id: data.test.id,
         certificationName: data.test.certificationName || name,
+        studyGuideUrl: url, // Include the URL so it can be reused for "Generate Another"
         questionCount: data.test.questionCount,
       });
     } catch (err) {

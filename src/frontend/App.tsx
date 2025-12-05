@@ -9,6 +9,7 @@ type AppState = 'search' | 'generating' | 'taking' | 'results';
 interface TestData {
   id: string;
   certificationName: string;
+  studyGuideUrl: string; // Store URL separately
   questionCount: number;
 }
 
@@ -66,10 +67,11 @@ function App() {
         {state === 'search' && (
           <SearchCertification
             onSelectCertification={(url, name) => {
-              // Store both URL and name - we'll use URL for generation
+              // Store both URL and name properly
               setTestData({ 
                 id: '', 
-                certificationName: url, // Store URL here, name will be used from API
+                certificationName: name, // Store the actual name
+                studyGuideUrl: url, // Store URL separately
                 questionCount: 40 
               });
               setState('generating');
@@ -79,7 +81,7 @@ function App() {
 
         {state === 'generating' && testData && (
           <TestGenerator
-            studyGuideUrl={testData.certificationName}
+            studyGuideUrl={testData.studyGuideUrl}
             certificationName={testData.certificationName}
             defaultQuestionCount={testData.questionCount}
             onTestGenerated={handleTestGenerated}

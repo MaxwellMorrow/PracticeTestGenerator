@@ -92,7 +92,7 @@ const server = Bun.serve({
 
       // Generate test
       if (path === '/api/generate-test' && method === 'POST') {
-        const body = await req.json();
+        const body = await req.json() as { studyGuideUrl?: string; certificationName?: string; questionCount?: number };
         const { studyGuideUrl, certificationName, questionCount } = body;
 
         if (!studyGuideUrl || !certificationName) {
@@ -111,12 +111,32 @@ const server = Bun.serve({
         return sendJSON(new Response(), { test });
       }
 
-      // Get test
-      if (path.startsWith('/api/test/') && method === 'GET') {
-        const testId = path.split('/api/test/')[1];
+      // Get test with answers (for results) - check more specific route first
+      if (path.startsWith('/api/test/') && path.endsWith('/answers') && method === 'GET') {
+        const pathParts = path.split('/api/test/')[1];
+        if (!pathParts) {
+          return sendError(new Response(), 'Test ID is required', 400);
+        }
+        const testId = pathParts.replace('/answers', '');
         if (!testId) {
           return sendError(new Response(), 'Test ID is required', 400);
         }
+
+        const test = await apiRoutes.getTest(testId);
+        if (!test) {
+          return sendError(new Response(), 'Test not found', 404);
+        }
+
+        return sendJSON(new Response(), { test });
+      }
+
+      // Get test (without answers) - check general route after specific routes
+      if (path.startsWith('/api/test/') && method === 'GET') {
+        const pathParts = path.split('/api/test/')[1];
+        if (!pathParts) {
+          return sendError(new Response(), 'Test ID is required', 400);
+        }
+        const testId = pathParts;
 
         const test = await apiRoutes.getTest(testId);
         if (!test) {
@@ -138,30 +158,23 @@ const server = Bun.serve({
         return sendJSON(new Response(), { test: testForTaking });
       }
 
-      // Get test with answers (for results)
-      if (path.startsWith('/api/test/') && path.endsWith('/answers') && method === 'GET') {
-        const testId = path.split('/api/test/')[1].replace('/answers', '');
-        if (!testId) {
-          return sendError(new Response(), 'Test ID is required', 400);
-        }
-
-        const test = await apiRoutes.getTest(testId);
-        if (!test) {
-          return sendError(new Response(), 'Test not found', 404);
-        }
-
-        return sendJSON(new Response(), { test });
-      }
-
       // Submit test answers and get score
       if (path.startsWith('/api/test/') && path.endsWith('/submit') && method === 'POST') {
-        const testId = path.split('/api/test/')[1].replace('/submit', '');
+        const pathParts = path.split('/api/test/')[1];
+        if (!pathParts) {
+          return sendError(new Response(), 'Test ID is required', 400);
+        }
+        const testId = pathParts.replace('/submit', '');
         if (!testId) {
           return sendError(new Response(), 'Test ID is required', 400);
         }
 
-        const body = await req.json();
+        const body = await req.json() as { answers?: Record<string, string[]> };
         const { answers } = body;
+
+        if (!answers) {
+          return sendError(new Response(), 'Answers are required', 400);
+        }
 
         const test = await apiRoutes.getTest(testId);
         if (!test) {

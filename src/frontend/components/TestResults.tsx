@@ -62,18 +62,9 @@ const TestResults: React.FC<TestResultsProps> = ({
       }
       
       setTest(data.test);
-
-      // Get score details
-      const submitResponse = await fetch(`/api/test/${testId}/submit`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ answers: {} }), // We need to get the details differently
-      });
-
-      // For now, we'll calculate details client-side
-      // In a real implementation, you'd want to store the user's answers
+      
+      // Score details are already available in the results prop from TestTaking
+      // No need to make an additional request
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {

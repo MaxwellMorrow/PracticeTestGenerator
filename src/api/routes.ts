@@ -3,7 +3,7 @@ import { ContentExtractor } from '../services/contentExtractor';
 import { ContentAnalyzer } from '../services/contentAnalyzer';
 import { QuestionGenerator } from '../services/questionGenerator';
 import { TestStorage } from '../services/testStorage';
-import { PracticeTest, CertificationSearchResult } from '../types';
+import type { PracticeTest, CertificationSearchResult } from '../types';
 
 export class APIRoutes {
   private bingSearch: BingSearchService | null;
@@ -57,9 +57,6 @@ export class APIRoutes {
     // Step 1: Extract study guide content
     console.log('Step 1: Extracting study guide content...');
     const studyGuideContent = await this.contentExtractor.fetchContent(studyGuideUrl);
-    const structuredContent = this.contentExtractor.extractStructuredContent(
-      await fetch(studyGuideUrl).then(r => r.text())
-    );
 
     // Step 2: Generate questions directly from study guide content
     console.log('Step 2: Generating questions from study guide...');
